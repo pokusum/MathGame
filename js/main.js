@@ -10,10 +10,10 @@ document.body.appendChild(app.view);
 
 const mainLine = new PIXI.Graphics();
 mainLine.lineStyle(4, 0xFFA500, 1)
-//mainLine.beginFill(0x48036F);
+mainLine.beginFill(0x48036F);
 mainLine.drawRect(-5, 2, windowInnerWidth + 10, 115);
-//mainLine.endFill();
-app.stage.addChild(mainLine);
+mainLine.endFill();
+//app.stage.addChild(mainLine);
 
 window.WebFontConfig = {
     google: {
