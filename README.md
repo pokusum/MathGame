@@ -1,3 +1,2 @@
 # MathGame
-DreamKing - frontend
-AnGG - backend
+DreamKing - frontend/AnGG - backend
