@@ -1,36 +1,14 @@
-const canvas = document.getElementById('mycanvas');
-
-let _w = document.documentElement.clientWidth;
-let _h = document.documentElement.clientHeight;
-
-const renderer = new PIXI.Renderer({
-    view: canvas,
-    width: _w,
-    height: _h,
-    resolution: window.devicePixelRatio,
-    autoDensity: true,
-    transparent: true
-});
-
-window.addEventListener('resize', resize);
-
-function resize() {
-
-    _w =document.documentElement.clientWidth;
-    _h = document.documentElement.clientHeight;
-
-    renderer.resize(_w, _h);
-}
-
-const interface = new PIXI.Container();
+var win = false;
 
 const num = [10];
+const dec_num = [10];
 const sec_num = [10];
 const dsec_num = [10];
 const min_num = [10];
 const dmin_num = [10];
 for(let i = 0; i < 10; i++) {
   num[i] = new PIXI.Sprite();
+  dec_num[i] = new PIXI.Sprite();
   sec_num[i] = new PIXI.Sprite();
   dsec_num[i] = new PIXI.Sprite();
   min_num[i] = new PIXI.Sprite();
@@ -168,10 +146,17 @@ levelTheme.x = 10;
 levelTheme.y = 100;
 menu.addChild(levelTheme);
 var steps_round = new PIXI.Sprite();
+var steps = 0;
+var steps_num = 0;
+var steps_dec = 0;
 var steps_round_num = new PIXI.Sprite();
 steps_round_num.addChild(num[0]);
-let steps = 0;
-var text_level_steps_go;
+steps_round_num.position.set(121, 0);
+var steps_round_dec = new PIXI.Sprite();
+steps_round.addChild(steps_round_num);
+steps_round_dec.addChild(dec_num[0]);
+steps_round_dec.position.set(100, 0);
+steps_round.addChild(steps_round_dec);
 steps_round.x = 10;
 steps_round.y = 140;
 menu.addChild(steps_round);
@@ -179,6 +164,7 @@ var time_cnt_round = new PIXI.Sprite();
 let time_cnt = 0;
 time_cnt_round.x = 10;
 time_cnt_round.y = 180;
+updateStopwatch();
 //stopwatch.position.set(_w - 300, _h - 51);
 stopwatch.position.set(90, 0);
 time_cnt_round.addChild(stopwatch);
@@ -285,13 +271,14 @@ function onPointer_buttonAgain_Down(){
   dec_minute.addChild(dmin_num[0]);
   time[3] = 0;
   time_cnt = 0;
-  steps = 0;
 
+  goToFirstExpression();
 }
 
 function onPointer_buttonBack_Down(){
   if(steps != 0) {
-    steps--;
+    goToPreviousExpression();
+    updateSteps();
   }else{
     removeNotification();
     notification.addChild(notificationAction);
@@ -314,13 +301,18 @@ function onPointer_buttonInfo_Down() {
     interface.addChild(menu);
     stopwatch.position.set(90, 0);
     hide = 0;
+    buttonInfo[0].removeChild(buttonInfo[3]);
+    buttonInfo[0].addChild(buttonInfo[2]);
   }else{
     interface.removeChild(menu);
     interface.addChild(stopwatch);
     stopwatch.position.set(_w - 120, _h - 50);
     hide = 1;
+    buttonInfo[0].removeChild(buttonInfo[2]);
+    buttonInfo[0].addChild(buttonInfo[3]);
   }
 }
+
 function onPointer_buttonInfo_Over() {
   if(hide == 1){
     buttonInfo[0].removeChild(buttonInfo[1]);
@@ -360,7 +352,7 @@ function createButtonCircleOver(color){
 
 var notification = new PIXI.Sprite();
 notification.x = _w / 2 - 350;
-notification.y = _h / 2 - 100;
+notification.y = _h / 2 - 50;
 
 var notificationBody = new PIXI.Graphics();
 notificationBody.lineStyle(3, 0xFFA500, 1);
@@ -376,6 +368,7 @@ notification.on('pointerdown', removeNotification);
 function removeNotification(){
   notification.removeChild(notificationAction);
   notification.removeChild(notificationVersion);
+  notification.removeChild(notificationWin);
   interface.removeChild(notification);
 }
 
@@ -383,6 +376,8 @@ var notificationVersion = new PIXI.Sprite();
 notificationVersion.position.set(32, 10);
 var notificationAction = new PIXI.Sprite();
 notificationAction.position.set(120, 10);
+var notificationWin = new PIXI.Sprite();
+notificationWin.position.set(280, 10);
 
 
 
@@ -426,6 +421,10 @@ function init() {
     for(let i = 0; i < 10; i++) {
       const number = new PIXI.Text(i, style_login);
       num[i].addChild(number);
+    }
+    for(let i = 0; i < 10; i++) {
+      const dec_number = new PIXI.Text(i, style_login);
+      dec_num[i].addChild(dec_number);
     }
 
     for(let i = 0; i < 10; i++) {
@@ -498,46 +497,66 @@ function init() {
     const text_notificationAction = new PIXI.Text('This action is not available!', style_login);
     notificationAction.addChild(text_notificationAction);
 
+    const text_notificationWin = new PIXI.Text('You win...', style_login);
+    notificationWin.addChild(text_notificationWin);
+
 
 }
+
+
+function updateStopwatch() {
+  var pr_id = setTimeout(updateStopwatch, 1000);
+  time_cnt++;
+
+  sec.removeChild(sec_num[time[0]]);
+  sec.addChild(sec_num[(time_cnt)%10]);
+  time[0] = (time_cnt)%10;
+
+  if(time_cnt%10 == 0) {
+    dec_sec.removeChild(dsec_num[time[1]]);
+    dec_sec.addChild(dsec_num[(time_cnt/10)%6]);
+    time[1] = (time_cnt/10)%6;
+  }
+
+  if(time_cnt%60 == 0) {
+    minute.removeChild(min_num[time[2]]);
+    minute.addChild(min_num[(time_cnt/60)%10]);
+    time[2] = (time_cnt/60)%10;
+  }
+
+  if(time_cnt%600 == 0) {
+    dec_minute.removeChild(dmin_num[time[3]]);
+    dec_minute.addChild(dmin_num[(time_cnt/600)%6]);
+    time[3] = (time_cnt/600)%6;
+  }
+
+  if(win){
+    clearTimeout(pr_id);
+  }
+
+
+}
+
+function updateSteps() {
+  steps = returnTurnAmount();
+  steps_round_num.removeChild(num[steps_num]);
+  steps_round_dec.removeChild(dec_num[steps_dec]);
+  steps_num = steps % 10;
+  steps_dec = ((steps - steps%10) /10) % 10;
+  steps_round_num.addChild(num[steps_num]);
+  steps_round_dec.addChild(dec_num[steps_dec]);
+}
+
 
 let ticker = new PIXI.Ticker();
 ticker.add(animate);
 ticker.start();
 
+loadLevel('(*(+(/(a;b);c;d);x))', '(b)');
+
+
 
 function animate() {
-  time_cnt++;
-  if(time_cnt%60 == 0){
-    sec.removeChild(sec_num[time[0]]);
-    sec.addChild(sec_num[(time_cnt/60)%10]);
-    time[0] = (time_cnt/60)%10;
-
-    if(time_cnt%600 == 0) {
-      dec_sec.removeChild(dsec_num[time[1]]);
-      dec_sec.addChild(dsec_num[(time_cnt/600)%6]);
-      time[1] = (time_cnt/600)%6;
-    }
-
-    if(time_cnt%3600 == 0) {
-      minute.removeChild(min_num[time[2]]);
-      minute.addChild(min_num[(time_cnt/3600)%10]);
-      time[2] = (time_cnt/3600)%10;
-    }
-
-    if(time_cnt%36000 == 0) {
-      dec_minute.removeChild(dmin_num[time[3]]);
-      dec_minute.addChild(dmin_num[(time_cnt/36000)%6]);
-      time[3] = (time_cnt/36000)%6;
-    }
-
-  }
-
-  steps_round.removeChild(steps_round_num);
-  steps_round.removeChild(text_level_steps_go);
-  text_level_steps_go = new PIXI.Text(steps, style_menu);
-  text_level_steps_go.position.set(100, 0);
-  steps_round.addChild(text_level_steps_go);
 
   renderer.render(interface);
 }
