@@ -43,6 +43,21 @@ var style_menu_head= new PIXI.TextStyle({
   align: 'left',
 });
 
+var style_win= new PIXI.TextStyle({
+  fontFamily: 'Nerko One',
+  fontSize: 40,
+  fill: 0xFFA500,
+  align: 'left',
+});
+
+var style_head_win= new PIXI.TextStyle({
+  fontFamily: 'Nerko One',
+  fontSize: 55,
+  fill: 0xFFA500,
+  align: 'left',
+});
+
+
 const buttonLogin = new PIXI.Sprite();
 buttonLogin.x = _w - 150;
 buttonLogin.y = 40;
@@ -272,6 +287,8 @@ function onPointer_buttonAgain_Down(){
   time[3] = 0;
   time_cnt = 0;
 
+  win = false;
+  updateStopwatch();
   goToFirstExpression();
 }
 
@@ -379,6 +396,114 @@ notificationAction.position.set(120, 10);
 var notificationWin = new PIXI.Sprite();
 notificationWin.position.set(280, 10);
 
+
+
+var menuWin = new PIXI.Sprite();
+menuWin.x = (_w - 500) / 2;
+menuWin.y = (_h - 400) / 2;
+const roundBoxMenuWin = new PIXI.Graphics();
+roundBoxMenuWin.lineStyle(3, 0xFFA500, 1);
+roundBoxMenuWin.beginFill(0x8f17ad, 1);
+roundBoxMenuWin.drawRoundedRect(0, 0, 500, 400, 25);
+roundBoxMenuWin.endFill();
+menuWin.addChild(roundBoxMenuWin);
+const roundBoxMenuHeadWin = new PIXI.Graphics();
+roundBoxMenuHeadWin.lineStyle(3, 0xFFA500, 1);
+roundBoxMenuHeadWin.beginFill(0x67107d, 0.8);
+roundBoxMenuHeadWin.drawRoundedRect(0, 0, 500, 75, 25);
+roundBoxMenuHeadWin.endFill();
+menuWin.addChild(roundBoxMenuHeadWin);
+var headWin = new PIXI.Sprite();
+headWin.x = 143;
+headWin.y = 12;
+roundBoxMenuHeadWin.addChild(headWin);
+var levelNameWin = new PIXI.Sprite();
+levelNameWin.x = 20;
+levelNameWin.y = 90;
+menuWin.addChild(levelNameWin);
+var levelThemeWin = new PIXI.Sprite();
+levelThemeWin.x = 20;
+levelThemeWin.y = 135;
+menuWin.addChild(levelThemeWin);
+var steps_round_win = new PIXI.Sprite();
+var steps_round_num_win = new PIXI.Sprite();
+steps_round_num_win.position.set(131, 0);
+steps_round_win.addChild(steps_round_num_win);
+var steps_round_dec_win = new PIXI.Sprite();
+steps_round_dec_win.position.set(110, 0);
+steps_round_win.addChild(steps_round_dec_win);
+steps_round_win.x = 20;
+steps_round_win.y = 180;
+menuWin.addChild(steps_round_win);
+var time_cnt_round_win = new PIXI.Sprite();
+time_cnt_round_win.x = 20;
+time_cnt_round_win.y = 225;
+menuWin.addChild(time_cnt_round_win);
+var restartButton = new PIXI.Sprite();
+restartButton.x = 0;
+restartButton.y = 300;
+menuWin.addChild(restartButton);
+var restartButtonOut = new PIXI.Sprite();
+const roundBoxrestartButtonOut = new PIXI.Graphics();
+roundBoxrestartButtonOut.lineStyle(3, 0xFFA500, 1);
+roundBoxrestartButtonOut.beginFill(0x67107d, 0.5);
+roundBoxrestartButtonOut.drawRoundedRect(125, 5, 250, 50, 25);
+roundBoxrestartButtonOut.endFill();
+restartButtonOut.addChild(roundBoxrestartButtonOut);
+restartButton.addChild(restartButtonOut);
+var restartButtonOver = new PIXI.Sprite();
+const roundBoxRestartButtonOver = new PIXI.Graphics();
+roundBoxRestartButtonOver.lineStyle(3, 0xFFA500, 1);
+roundBoxRestartButtonOver.beginFill(0x67107d, 1);
+roundBoxRestartButtonOver.drawRoundedRect(125, 5, 250, 50, 25);
+roundBoxRestartButtonOver.endFill();
+restartButtonOver.addChild(roundBoxRestartButtonOver);
+
+
+restartButton.hitArea = new PIXI.Rectangle(0, 0, 250, 50);
+restartButton.buttonMode = true;
+restartButton.interactive = true;
+
+restartButton.on('pointerdown', againAfterWin);
+restartButton.on('pointerover', onPointer_buttonRestart_Over);
+restartButton.on('pointerout', onPointer_buttonRestart_Out);
+
+function onPointer_buttonRestart_Over() {
+  restartButton.removeChild(restartButtonOut);
+  restartButton.addChild(restartButtonOver);
+}
+
+function onPointer_buttonRestart_Out() {
+  restartButton.removeChild(restartButtonOver);
+  restartButton.addChild(restartButtonOut);
+}
+
+function activeWin() {
+  steps_round_num_win.addChild(num[steps_num]);
+  steps_round_dec_win.addChild(dec_num[steps_dec]);
+  stopwatch.position.set(100, 0);
+  time_cnt_round_win.addChild(stopwatch);
+  interface.addChild(menuWin);
+  interface.removeChild(menu);
+  buttonBack[0].interactive = false;
+  buttonAgain[0].interactive = false;
+  buttonHelp[0].interactive = false;
+  buttonInfo[0].interactive = false;
+
+}
+
+function againAfterWin() {
+  steps_round_num_win.removeChild(num[steps_num]);
+  steps_round_dec_win.removeChild(dec_num[steps_dec]);
+  buttonBack[0].interactive = true;
+  buttonAgain[0].interactive = true;
+  buttonHelp[0].interactive = true;
+  buttonInfo[0].interactive = true;
+  interface.removeChild(menuWin);
+  onPointer_buttonAgain_Down();
+  time_cnt_round.addChild(stopwatch);
+  interface.addChild(menu);
+}
 
 
 
@@ -497,17 +622,46 @@ function init() {
     const text_notificationAction = new PIXI.Text('This action is not available!', style_login);
     notificationAction.addChild(text_notificationAction);
 
-    const text_notificationWin = new PIXI.Text('You win...', style_login);
-    notificationWin.addChild(text_notificationWin);
 
+    const text_level_head_win = new PIXI.Text('You win!!!', style_head_win);
+    headWin.addChild(text_level_head_win);
+
+    const text_level_win = new PIXI.Text('Level:', style_win);
+    levelNameWin.addChild(text_level_win);
+    const text_level_name_wim = new PIXI.Text(name, style_win);
+    text_level_name_wim.position.set(105, 0);
+    levelNameWin.addChild(text_level_name_wim);
+
+    const text_theme_win = new PIXI.Text('Theme:', style_win);
+    levelThemeWin.addChild(text_theme_win);
+    const text_level_theme_win = new PIXI.Text(theme, style_win);
+    text_level_theme_win.position.set(120, 0);
+    levelThemeWin.addChild(text_level_theme_win);
+
+    const text_steps_win = new PIXI.Text('Steps:', style_win);
+    steps_round_win.addChild(text_steps_win);
+
+    const text_time_cnt_win = new PIXI.Text('Time:', style_win);
+    time_cnt_round_win.addChild(text_time_cnt_win);
+
+    const text_restart_button = new PIXI.Text('play again', style_win);
+    text_restart_button.position.set(167, 8);
+    restartButtonOut.addChild(text_restart_button);
+
+    const text_restart_button_over = new PIXI.Text('play again', style_win);
+    text_restart_button_over.position.set(167, 8);
+    restartButtonOver.addChild(text_restart_button_over);
 
 }
 
 
 function updateStopwatch() {
   var pr_id = setTimeout(updateStopwatch, 1000);
-  time_cnt++;
 
+  if(win){
+    clearTimeout(pr_id);
+  }else{
+  time_cnt++;
   sec.removeChild(sec_num[time[0]]);
   sec.addChild(sec_num[(time_cnt)%10]);
   time[0] = (time_cnt)%10;
@@ -530,10 +684,7 @@ function updateStopwatch() {
     time[3] = (time_cnt/600)%6;
   }
 
-  if(win){
-    clearTimeout(pr_id);
   }
-
 
 }
 
@@ -552,8 +703,8 @@ let ticker = new PIXI.Ticker();
 ticker.add(animate);
 ticker.start();
 
-loadLevel('(*(+(/(a;b);c;d);x))', '(b)');
-
+//loadLevel("(*(+(/(a;b);c;d);x))", "(b)");
+loadLevel("(sin(a))", "(+(1;-(cos(a))))");
 
 
 function animate() {

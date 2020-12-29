@@ -6,8 +6,9 @@ function redrawMainExpression(goBack, newExpressionNode) {
     expressionRoot = expressionProgression[expressionProgression.length-1];
 
     changeStepsValue(turnsDone+1);
-    checkAnswer(expressionRoot, goalStructureString);
+    checkAnswer(expressionRoot);
     
+    //console.log([twf.api.expressionToStructureString(expressionProgression[expressionProgression.length-1]), goalStructureString]);
     containerRoot.removeChildren();
     expressionContainerRoot = outputReactiveExpression(expressionRoot);
     substitutionContainerRoot.removeChildren();
@@ -27,10 +28,22 @@ function outputReactiveExpression(expressionNode) {
     outputContainer.on("click", outputApplicableSubstitutions);
 
     function outputApplicableSubstitutions(event) {
+        outputAnswer(false);
+
         var posX = event.data.global.x;
         var posY = event.data.global.y;
-        var selectedNode = getDeepestContainer(posX-containerRoot.x, posY-containerRoot.y, outputContainer.nodeData);
-        var applicableSubstitutions = twf.api.findApplicableSubstitutionsInSelectedPlace(expressionRoot, [selectedNode], config);
+        //var selectedNode = getDeepestContainer(posX-containerRoot.x, posY-containerRoot.y, outputContainer.nodeData);
+        //var applicableSubstitutions = twf.api.findApplicableSubstitutionsInSelectedPlace(expressionRoot, [selectedNode], config).array_hd7ov6$_0;
+        var selectedNodes = getAllContainers(posX-gameContainer.x, posY-gameContainer.y, outputContainer.nodeData);
+        
+        var applicableSubstitutions = [];
+        for (let node of selectedNodes) {
+            let newSubstitutions = twf.api.findApplicableSubstitutionsInSelectedPlace(expressionRoot, [node], config).array_hd7ov6$_0;
+            for (let newSub of newSubstitutions) {
+                if (!substitutionIsInArray(newSub, applicableSubstitutions))
+                    applicableSubstitutions.push(newSub);
+            }
+        }
         //console.log(applicableSubstitutions);
         
         containerRoot.removeChildAt(1);
@@ -38,24 +51,25 @@ function outputReactiveExpression(expressionNode) {
         containerRoot.addChild(substitutionContainerRoot);
 
         repositionExpressionContainer(outputContainer, false);
-        var applicableSubstitutionsNum = applicableSubstitutions.array_hd7ov6$_0.length;
+        var applicableSubstitutionsNum = applicableSubstitutions.length;
         var offsetHeight = 0;
         for (let applicableSubstitutionId = 0; applicableSubstitutionId < applicableSubstitutionsNum; applicableSubstitutionId++) {
-            //console.log(applicableSubstitutions.array_hd7ov6$_0[applicableSubstitutionId]);
+            //console.log(applicableSubstitutions[applicableSubstitutionId]);
+            //console.log(applicableSubstitutionId, twf.api.expressionToString(applicableSubstitutions[applicableSubstitutionId].originalExpressionChangingPart));
+            //console.log(applicableSubstitutionId, twf.api.expressionToString(applicableSubstitutions[applicableSubstitutionId].resultExpressionChangingPart));
+            //console.log(sourceExpression);
+            //console.log(targetExpression);
             var outputSubstitutionsContainer = new PIXI.Container();
             outputSubstitutionsContainer.position.set(0, offsetHeight);
-            var sourceExpression = drawExpression(0, 0, applicableSubstitutions.array_hd7ov6$_0[applicableSubstitutionId].originalExpressionChangingPart, false);
-            var targetExpression = drawExpression(sourceExpression.width+extraSettings.sourceToTargetExpressionOffset, 0, applicableSubstitutions.array_hd7ov6$_0[applicableSubstitutionId].resultExpressionChangingPart, false);
-            // console.log(applicableSubstitutions.array_hd7ov6$_0[applicableSubstitutionId].originalExpressionChangingPart);
-            // console.log(applicableSubstitutions.array_hd7ov6$_0[applicableSubstitutionId].resultExpressionChangingPart);
-            // console.log(sourceExpression);
-            // console.log(targetExpression);
+            var sourceExpression = drawExpression(0, 0, applicableSubstitutions[applicableSubstitutionId].originalExpressionChangingPart, false);
+            var targetExpression = drawExpression(sourceExpression.width+extraSettings.sourceToTargetExpressionOffset, 0, applicableSubstitutions[applicableSubstitutionId].resultExpressionChangingPart, false);
+            
             sourceExpression.y = (Math.max(sourceExpression.height, targetExpression.height)-sourceExpression.height)/2;
             targetExpression.y = (Math.max(sourceExpression.height, targetExpression.height)-targetExpression.height)/2;
 
             outputSubstitutionsContainer.addChild(sourceExpression);
             outputSubstitutionsContainer.addChild(targetExpression);
-            makeResponsiveSubstitution(outputSubstitutionsContainer, applicableSubstitutions.array_hd7ov6$_0[applicableSubstitutionId].resultExpression);
+            makeResponsiveSubstitution(outputSubstitutionsContainer, applicableSubstitutions[applicableSubstitutionId].resultExpression);
 
             substitutionContainerRoot.addChild(outputSubstitutionsContainer);
             offsetHeight += outputSubstitutionsContainer.height;
@@ -92,10 +106,10 @@ function drawExpression(x, y, expressionNode, isResponsive) {
     var type = expressionNode.nodeType.name$;
     var value = expressionNode.value;
     container.expressionTreeNodeId = expressionNode.nodeId;
+
     var isRoot = (expressionNode.parent == null);
-    var parentType = (expressionNode.parent == null) ? null : expressionNode.parent.name$;
+    var parentType = (expressionNode.parent == null) ? null : expressionNode.parent.nodeType.name$;
     var parentValue = (expressionNode.parent == null) ? null : expressionNode.parent.value;
-    //container.respectiveIdentifier = expressionNode.identifier;
     //if (isResponsive)
     //    console.log([container.expressionTreeNodeId, container.respectiveIdentifier]);
 
@@ -121,13 +135,11 @@ function drawExpression(x, y, expressionNode, isResponsive) {
                     parts.push(newBlock);
 
                     if (childNum < childrenAmount-1) {
-                        if (expressionNode.children.array_hd7ov6$_0[childNum+1].value !== "-") { // if right child is -(<some_expression>), then we shouldn't draw a "+"
-                            var text = new PIXI.Text("+", style);
-                            text.position.set(curOffset, 0);
-                            plusSigns.push(text);
-                            var textBlockWidth = PIXI.TextMetrics.measureText("+", style).width;
-                            curOffset += textBlockWidth;
-                        }
+                        var text = new PIXI.Text("+", style);
+                        text.position.set(curOffset, 0);
+                        plusSigns.push(text);
+                        var textBlockWidth = PIXI.TextMetrics.measureText("+", style).width;
+                        curOffset += textBlockWidth;
                     }
                 }
                 
@@ -158,7 +170,7 @@ function drawExpression(x, y, expressionNode, isResponsive) {
                 container.addChild(text);
                 container.addChild(variable_part);
 
-                if (["-", "*", "^"].includes(parentValue)) {
+                if (["+", "-", "*", "^"].includes(parentValue)) {
                     surroundContainerByBrackets(container);
                 }
 
@@ -349,4 +361,22 @@ function makeResponsiveSubstitution(container, newNode) {
 
     container.addChild(highlightRect);
     return container;
+}
+
+function outputAnswer(needToOutput) {
+    if (needToOutput) {
+        var goalText = new PIXI.Text("Goal: ", style);
+        var goalTextWidth = PIXI.TextMetrics.measureText("Goal: ", style).width;
+        var goalTextHeight = PIXI.TextMetrics.measureText("Goal: ", style).height;
+        var answerSubcontainer = drawExpression(0, 0, twf.api.structureStringToExpression(goalStructureString), false);
+
+        goalText.position.set(0, (answerSubcontainer.height-goalTextHeight)/2);
+        answerSubcontainer.position.set(goalTextWidth, 0);
+
+        answerContainer.position.set((extraSettings.screenWidth-goalTextWidth-answerSubcontainer.width)/2, ((extraSettings.screenHeight*extraSettings.partOfScreenDedicatedToExpression-answerSubcontainer.height)/2));
+        answerContainer.addChild(goalText);
+        answerContainer.addChild(answerSubcontainer);
+    } else {
+        answerContainer.removeChildren();
+    }
 }
