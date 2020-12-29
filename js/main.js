@@ -458,7 +458,7 @@ roundBoxRestartButtonOver.endFill();
 restartButtonOver.addChild(roundBoxRestartButtonOver);
 
 
-restartButton.hitArea = new PIXI.Rectangle(0, 0, 250, 50);
+restartButton.hitArea = new PIXI.Rectangle(125, 5, 250, 50);
 restartButton.buttonMode = true;
 restartButton.interactive = true;
 
