@@ -369,7 +369,7 @@ function createButtonCircleOver(color){
 
 var notification = new PIXI.Sprite();
 notification.x = _w / 2 - 350;
-notification.y = _h / 2 - 50;
+notification.y = _h / 2 - 30;
 
 var notificationBody = new PIXI.Graphics();
 notificationBody.lineStyle(3, 0xFFA500, 1);
@@ -385,7 +385,6 @@ notification.on('pointerdown', removeNotification);
 function removeNotification(){
   notification.removeChild(notificationAction);
   notification.removeChild(notificationVersion);
-  notification.removeChild(notificationWin);
   interface.removeChild(notification);
 }
 
@@ -393,8 +392,7 @@ var notificationVersion = new PIXI.Sprite();
 notificationVersion.position.set(32, 10);
 var notificationAction = new PIXI.Sprite();
 notificationAction.position.set(120, 10);
-var notificationWin = new PIXI.Sprite();
-notificationWin.position.set(280, 10);
+
 
 
 
